@@ -1,3 +1,4 @@
+// Written by Xiyan Wang, Nov 22nd, 2018
 package MessageQueue.User;
 
 import MessageQueue.Server.InMemoryQueueService;
@@ -6,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestInMemoryQueueService {
     static InMemoryQueueService queueService = new InMemoryQueueService();  // In-memory message queue
-    static Random random = new Random(0);
+    static Random random = new Random(1);
     static AtomicInteger idx = new AtomicInteger(0);
     static final Object lock = new Object();
 

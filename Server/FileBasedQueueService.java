@@ -104,15 +104,14 @@ public class FileBasedQueueService implements QueueService {
     // Write file and put simplified message (without data) in queue
     public int push(Object data) throws InterruptedException {
         int id = idx.getAndIncrement();
-        Message queueMessage = new Message(id, null);
         try {
-            writeMessage(queueMessage, new Message(id, data));
+            writeMessage(new Message(id, data));
         }
         catch (IOException e) {
             e.printStackTrace();
             return -1;
         }
-        queue.put(queueMessage);
+        queue.put(new Message(id, null));
         return id;
     }
 
@@ -124,7 +123,7 @@ public class FileBasedQueueService implements QueueService {
         pullTasks.put(task.getConsumerId(), task);
         timer.schedule(task, this.timeoutInterval);
         try {
-            return readMessage(task.getMsg()).getData();
+            return readMessage(task.getMsg().getId()).getData();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -143,7 +142,7 @@ public class FileBasedQueueService implements QueueService {
                     task.cancel();
                     timer.purge();
                     pullTasks.remove(getConsumerId());
-                    return deleteMessage(task.getMsg());
+                    return deleteMessage(task.getMsg().getId());
                 }
             }
         }
@@ -156,34 +155,30 @@ public class FileBasedQueueService implements QueueService {
     }
 
     // Read message from file
-    private Message readMessage (Message queueMsg) throws IOException, ClassNotFoundException {
-        synchronized (queueMsg) {
-            Path path = Paths.get(fileDir, String.valueOf(queueMsg.getId()));
-            FileInputStream fis = new FileInputStream(path.toString());
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            Message msg = (Message) ois.readObject();
-            ois.close();
-            fis.close();
-            return msg;
-        }
+    private Message readMessage (int id) throws IOException, ClassNotFoundException {
+        Path path = Paths.get(fileDir, String.valueOf(id));
+        FileInputStream fis = new FileInputStream(path.toString());
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        Message msg = (Message) ois.readObject();
+        ois.close();
+        fis.close();
+        return msg;
     }
 
     // Write message to file
-    private void writeMessage (Message queueMsg, Message msg) throws IOException {
-        synchronized (queueMsg) {
-            Path path = Paths.get(fileDir, String.valueOf(msg.getId()));
-            FileOutputStream fos = new FileOutputStream(path.toString());
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(msg);
-            oos.flush();
-            oos.close();
-            fos.close();
-        }
+    private void writeMessage (Message msg) throws IOException {
+        Path path = Paths.get(fileDir, String.valueOf(msg.getId()));
+        FileOutputStream fos = new FileOutputStream(path.toString());
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(msg);
+        oos.flush();
+        oos.close();
+        fos.close();
     }
 
     // Delete message file
-    private boolean deleteMessage (Message queueMsg) {
-        Path path = Paths.get(fileDir, String.valueOf(queueMsg.getId()));
+    private boolean deleteMessage (int id) {
+        Path path = Paths.get(fileDir, String.valueOf(id));
         return new File(path.toString()).delete();
     }
 
@@ -191,5 +186,10 @@ public class FileBasedQueueService implements QueueService {
     private String getConsumerId () {
         return String.valueOf(Thread.currentThread().getId()) + " " +
                 String.valueOf(Long.parseLong(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]));
+    }
+
+    // Return next message id
+    public int getNextMessageId () {
+        return idx.get();
     }
 }

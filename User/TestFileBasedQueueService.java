@@ -1,4 +1,5 @@
 // Written by Xiyan Wang, Nov 23rd, 2018
+// Multi-process producer / consumer not tested
 
 package MessageQueue.User;
 
@@ -8,8 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestFileBasedQueueService {
     static FileBasedQueueService queueService = new FileBasedQueueService();  // File-based message queue
-    static Random random = new Random(0);
-    static AtomicInteger idx = new AtomicInteger(0);
+    static Random random = new Random(1);
+    static AtomicInteger idx = new AtomicInteger(queueService.getNextMessageId());
     static final Object lock = new Object();
 
     // Consumer
