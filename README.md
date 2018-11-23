@@ -11,4 +11,4 @@ java MessageQueue.User.TestInMemoryQueueService
 javac MessageQueue/User/TestFileBasedQueueService.java
 java MessageQueue.User.TestFileBasedQueueService
 
-**Note**: Multi-process provider / consumer is not tested, but it should work fine
+**Note**: Multi-process provider / consumer is not tested, but it should work fine with file-based message queue.
